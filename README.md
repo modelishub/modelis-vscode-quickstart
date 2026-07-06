@@ -6,6 +6,12 @@ your coding agent in under a minute. No npm dependencies; ~150 lines, read it be
 
 Built for people migrating provider configs after Roo Code's shutdown (Zoo Code / Cline / Continue).
 
+## Install (Marketplace publish pending — manual install works today)
+
+1. Download [`modelis-quickstart-0.1.0.vsix`](https://github.com/modelishub/modelis-vscode-quickstart/releases/latest)
+2. VS Code → Extensions panel → `...` menu → **Install from VSIX**
+   (or: `code --install-extension modelis-quickstart-0.1.0.vsix`)
+
 ## Commands (Cmd/Ctrl+Shift+P)
 
 | Command | What it does |
