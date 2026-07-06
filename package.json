@@ -1,0 +1,45 @@
+{
+  "name": "modelis-quickstart",
+  "displayName": "Modelis Quickstart",
+  "description": "Drop-in setup helper for the Modelis LLM gateway (GPT/Claude/Gemini/DeepSeek/Grok/Qwen, one key, flat pricing) in Cline, Roo Code, Zoo Code, Continue, and Aider.",
+  "version": "0.1.0",
+  "publisher": "modelishub",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other", "Machine Learning"],
+  "keywords": ["cline", "roo code", "zoo code", "continue", "aider", "llm", "openai", "claude", "gemini", "agent"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/modelishub/modelis-vscode-quickstart"
+  },
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "modelis.setApiKey",
+        "title": "Modelis: Set RapidAPI Key"
+      },
+      {
+        "command": "modelis.showConfig",
+        "title": "Modelis: Show Provider Config for My Tool"
+      },
+      {
+        "command": "modelis.startProxy",
+        "title": "Modelis: Start Local Proxy (npx modelis-openai)"
+      },
+      {
+        "command": "modelis.writeContinueConfig",
+        "title": "Modelis: Add to Continue Config (~/.continue/config.yaml)"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^2.24.0"
+  }
+}
