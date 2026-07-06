@@ -23,7 +23,7 @@ Built for people migrating provider configs after Roo Code's shutdown (Zoo Code 
 
 ## Setup flow
 
-1. Get a free key (no card): https://rapidapi.com/chenxiao5580/api/modelis-auto-chat
+1. Get a free key (no card): https://modelishub.com/pricing
 2. Run **Modelis: Set RapidAPI Key**, paste it.
 3. Run **Modelis: Start Local Proxy** (needs Node 18+).
 4. Run **Modelis: Show Provider Config for My Tool**, paste into your tool's settings.

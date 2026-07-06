@@ -9,7 +9,7 @@ const path = require('path');
 const os = require('os');
 
 const SECRET_KEY = 'modelis.rapidApiKey';
-const RAPIDAPI_SIGNUP_URL = 'https://rapidapi.com/chenxiao5580/api/modelis-auto-chat';
+const RAPIDAPI_SIGNUP_URL = 'https://modelishub.com/pricing';
 
 const TOOLS = [
   { label: 'Cline / Roo Code / Zoo Code (VS Code)', id: 'cline' },
