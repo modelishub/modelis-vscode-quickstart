@@ -1,6 +1,7 @@
 // Modelis Quickstart — zero-dependency VS Code extension.
-// Helps builders wire the Modelis LLM gateway (one key -> GPT/Claude/Gemini/DeepSeek/Grok/Qwen,
-// flat pricing, OpenAI-compatible) into Cline / Roo Code / Zoo Code / Continue / Aider.
+// Helps builders wire the Modelis LLM gateway (one key -> ~95 models from
+// OpenAI/Anthropic/Google/DeepSeek/xAI/Qwen, OpenAI-compatible) into
+// Cline / Roo Code / Zoo Code / Continue / Aider.
 //
 // No npm dependencies: only Node builtins + the `vscode` module supplied by the extension host.
 const vscode = require('vscode');
@@ -8,8 +9,11 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const SECRET_KEY = 'modelis.rapidApiKey';
-const RAPIDAPI_SIGNUP_URL = 'https://modelishub.com/pricing';
+const SECRET_KEY = 'modelis.apiKey';
+const LEGACY_SECRET_KEY = 'modelis.rapidApiKey';
+const SIGNUP_URL = 'https://modelishub.com/pricing';
+const BASE_URL = 'https://modelishub.com/v1';
+const KEY_PLACEHOLDER = '<your-modelis-key>';
 
 const TOOLS = [
   { label: 'Cline / Roo Code / Zoo Code (VS Code)', id: 'cline' },
@@ -18,38 +22,65 @@ const TOOLS = [
   { label: 'Any OpenAI SDK (Python/JS)', id: 'sdk' },
 ];
 
-function configFor(toolId, key) {
-  const k = key || '<your-rapidapi-key>';
+// modelis-auto is the standard tier. Valid ids are the four colon-form
+// entries below; modelis-auto and modelis-auto:standard are the same tier.
+const MODELS = [
+  { label: 'modelis-auto', description: 'standard (default) — $0.02 within 8k in / 2k out, then per token', id: 'modelis-auto' },
+  { label: 'modelis-auto:basic', description: '$0.004 within 4k in / 1k out, then per token', id: 'modelis-auto:basic' },
+  { label: 'modelis-auto:standard', description: 'same as modelis-auto — $0.02 within 8k in / 2k out, then per token', id: 'modelis-auto:standard' },
+  { label: 'modelis-auto:premium', description: '$0.05 within 4k in / 1k out, then per token', id: 'modelis-auto:premium' },
+];
+
+function configFor(toolId, key, model) {
+  const k = key || KEY_PLACEHOLDER;
+  const modelId = model || 'modelis-auto';
   switch (toolId) {
     case 'cline':
       return [
         'API Provider: OpenAI Compatible',
-        'Base URL:     http://127.0.0.1:8787/v1',
+        `Base URL:     ${BASE_URL}`,
         `API Key:      ${k}`,
-        'Model ID:     modelis-auto',
+        `Model ID:     ${modelId}`,
       ].join('\n');
     case 'continue':
       return [
         'models:',
         '  - name: Modelis',
         '    provider: openai',
-        '    model: modelis-auto',
-        '    apiBase: http://127.0.0.1:8787/v1',
+        `    model: ${modelId}`,
+        `    apiBase: ${BASE_URL}`,
         `    apiKey: ${k}`,
       ].join('\n');
     case 'aider':
       return [
-        'export OPENAI_API_BASE=http://127.0.0.1:8787/v1',
+        `export OPENAI_API_BASE=${BASE_URL}`,
         `export OPENAI_API_KEY=${k}`,
-        'aider --model openai/modelis-auto',
+        `aider --model openai/${modelId}`,
       ].join('\n');
     default:
       return [
         'from openai import OpenAI',
-        `client = OpenAI(base_url="http://127.0.0.1:8787/v1", api_key="${k}")`,
-        'client.chat.completions.create(model="modelis-auto",',
+        `client = OpenAI(base_url="${BASE_URL}", api_key="${k}")`,
+        `client.chat.completions.create(model="${modelId}",`,
         '    messages=[{"role": "user", "content": "Hello"}])',
       ].join('\n');
+  }
+}
+
+/** @param {vscode.ExtensionContext} context */
+async function readKey(context) {
+  const current = await context.secrets.get(SECRET_KEY);
+  if (current) return current;
+  return context.secrets.get(LEGACY_SECRET_KEY);
+}
+
+/** @param {vscode.ExtensionContext} context */
+async function writeKey(context, key) {
+  await context.secrets.store(SECRET_KEY, key);
+  try {
+    await context.secrets.delete(LEGACY_SECRET_KEY);
+  } catch {
+    // Older hosts, or a key that was never stored under the legacy name.
   }
 }
 
@@ -57,16 +88,16 @@ function configFor(toolId, key) {
 function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('modelis.setApiKey', async () => {
-      const existing = await context.secrets.get(SECRET_KEY);
+      const existing = await readKey(context);
       const key = await vscode.window.showInputBox({
-        prompt: 'Paste your Modelis RapidAPI key (get one free, no card)',
+        prompt: 'Paste your Modelis API key (new accounts include $1 free credit)',
         password: true,
         ignoreFocusOut: true,
         value: existing || '',
-        placeHolder: 'X-RapidAPI-Key value',
+        placeHolder: 'Modelis API key',
       });
       if (!key) return;
-      await context.secrets.store(SECRET_KEY, key);
+      await writeKey(context, key);
       vscode.window.showInformationMessage('Modelis: API key saved.');
     }),
 
@@ -76,17 +107,22 @@ function activate(context) {
       });
       if (!pick) return;
 
-      let key = await context.secrets.get(SECRET_KEY);
+      const modelPick = await vscode.window.showQuickPick(MODELS, {
+        placeHolder: 'Which modelis-auto tier? (modelis-auto = standard)',
+      });
+      if (!modelPick) return;
+
+      let key = await readKey(context);
       if (!key) {
-        const open = 'Get a free key';
+        const open = 'Get a key ($1 free credit)';
         const choice = await vscode.window.showInformationMessage(
-          'No Modelis key saved yet. Showing config with a placeholder — run "Modelis: Set RapidAPI Key" once you have one.',
+          'No Modelis key saved yet. Showing config with a placeholder — run "Modelis: Set API Key" once you have one.',
           open
         );
-        if (choice === open) vscode.env.openExternal(vscode.Uri.parse(RAPIDAPI_SIGNUP_URL));
+        if (choice === open) vscode.env.openExternal(vscode.Uri.parse(SIGNUP_URL));
       }
 
-      const text = configFor(pick.id, key);
+      const text = configFor(pick.id, key, modelPick.id);
       const copy = 'Copy to clipboard';
       const choice = await vscode.window.showInformationMessage(text, { modal: true }, copy);
       if (choice === copy) {
@@ -95,22 +131,11 @@ function activate(context) {
       }
     }),
 
-    vscode.commands.registerCommand('modelis.startProxy', async () => {
-      const term =
-        vscode.window.terminals.find((t) => t.name === 'Modelis Proxy') ||
-        vscode.window.createTerminal('Modelis Proxy');
-      term.show();
-      term.sendText('npx modelis-openai');
-      vscode.window.showInformationMessage(
-        'Modelis: starting local proxy on http://127.0.0.1:8787 (needs Node 18+). Leave this terminal running.'
-      );
-    }),
-
     vscode.commands.registerCommand('modelis.writeContinueConfig', async () => {
-      const key = (await context.secrets.get(SECRET_KEY)) || '<your-rapidapi-key>';
+      const key = (await readKey(context)) || KEY_PLACEHOLDER;
       const dir = path.join(os.homedir(), '.continue');
       const file = path.join(dir, 'config.yaml');
-      const entry = configFor('continue', key);
+      const entry = configFor('continue', key, 'modelis-auto');
 
       try {
         fs.mkdirSync(dir, { recursive: true });
@@ -139,4 +164,4 @@ function activate(context) {
 
 function deactivate() {}
 
-module.exports = { activate, deactivate };
+module.exports = { activate, deactivate, configFor, MODELS, BASE_URL };
