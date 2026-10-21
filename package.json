@@ -1,8 +1,8 @@
 {
   "name": "modelis-quickstart",
   "displayName": "Modelis Quickstart",
-  "description": "Drop-in setup helper for the Modelis LLM gateway (GPT/Claude/Gemini/DeepSeek/Grok/Qwen, one key, flat pricing) in Cline, Roo Code, Zoo Code, Continue, and Aider.",
-  "version": "0.1.0",
+  "description": "Drop-in setup helper for the Modelis LLM gateway (~95 models, one key, OpenAI-compatible at modelishub.com/v1) in Cline, Roo Code, Zoo Code, Continue, and Aider.",
+  "version": "0.1.1",
   "publisher": "modelishub",
   "license": "MIT",
   "engines": {
@@ -10,6 +10,8 @@
   },
   "categories": ["Other", "Machine Learning"],
   "keywords": ["cline", "roo code", "zoo code", "continue", "aider", "llm", "openai", "claude", "gemini", "agent"],
+  "homepage": "https://modelishub.com",
+  "bugs": { "url": "https://github.com/modelishub/modelis-vscode-quickstart/issues" },
   "repository": {
     "type": "git",
     "url": "https://github.com/modelishub/modelis-vscode-quickstart"
@@ -20,15 +22,11 @@
     "commands": [
       {
         "command": "modelis.setApiKey",
-        "title": "Modelis: Set RapidAPI Key"
+        "title": "Modelis: Set API Key"
       },
       {
         "command": "modelis.showConfig",
         "title": "Modelis: Show Provider Config for My Tool"
-      },
-      {
-        "command": "modelis.startProxy",
-        "title": "Modelis: Start Local Proxy (npx modelis-openai)"
       },
       {
         "command": "modelis.writeContinueConfig",
@@ -37,7 +35,8 @@
     ]
   },
   "scripts": {
-    "package": "vsce package"
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@vscode/vsce": "^2.24.0"
