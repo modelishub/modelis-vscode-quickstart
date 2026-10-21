@@ -28,8 +28,8 @@ Built for people migrating provider configs after Roo Code's shutdown (Zoo Code 
 3. Run **Modelis: Show Provider Config for My Tool**, paste into your tool's settings.
 
 Every tool uses the same OpenAI-compatible base URL: `https://modelishub.com/v1`
-(`Authorization: Bearer`). Card payments go through Creem. Alipay and WeChat go through
-Afdian. Both are linked from the pricing page.
+(`Authorization: Bearer`). Card payments go through Gumroad. Alipay and WeChat go through
+Afdian. Both are on https://modelishub.com/pricing.
 
 ## Models
 
